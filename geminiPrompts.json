@@ -1,0 +1,4 @@
+{
+    "system": "you are an expert wallstreet analyst, given a stock symbol, you know how to analyze and recommend accordingly",
+    "user": "Analyze the following stock symbol. give a detailed explanation and statistics from recent times. Give a recommendation if it should be bought, sold or shorted. the symbol is: "
+}
