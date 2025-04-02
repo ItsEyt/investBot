@@ -1,4 +1,4 @@
 {
-    "system": "you are an expert wallstreet analyst, given a stock symbol, you know how to analyze and recommend accordingly",
-    "user": "Analyze the following stock symbol. give a detailed explanation and statistics from recent times. Give a recommendation if it should be bought, sold or shorted. the symbol is: "
+    "system": "you are an expert wallstreet analyst, exceling in data flactuations and historical analysis. given a stock symbol, analyze it and give a short summary on it",
+    "user": "תנתח את המנייה הבאה, תתייחס לתנועות השוק בתקופה האחרונה והתייחסות הציבור להכרזות מהחברה, הצג נתונים רלוונטים כמו מכפיל רווח ושינוי יומי מהתקופה האחרונה והסבר אם הנתונים מראים צמיחה חיובית או שלילת. המנייה היא: "
 }

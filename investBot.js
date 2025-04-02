@@ -21,16 +21,13 @@ client.on('qr', qr => {
     qrcode.generate(qr, { small: true });
 });
 
-client.on('message_create', message => {
-    console.log("message located! " + message.body);
-    console.log("from: " + message.from);
-    if (message.from === ids.investingGroup) {
-        console.log("from investing group!");
+client.on('message_create', async message => {
+    // console.log(message.id.remote);
+    if (message.id.remote === ids.investingGroup || message.fromMe) {
         if (message.body.startsWith('!חיפוש')) {
-            console.log("searching stock")
             let msgParts = message.body.split(' ', 2);
             console.log(msgParts[1])
-            let analysis = checkInvestment(msgParts[1]);
+            let analysis = await checkInvestment(msgParts[1]);
             message.reply(`*מנייה*: ${analysis.stock_name}\n ${analysis.data}`)
         }
     }
@@ -38,8 +35,7 @@ client.on('message_create', message => {
 client.initialize();
 
 
-const checkInvestment = (stock) => {
-    console.log("stock: " + stock);
+const checkInvestment = async (stock) => {
     const apiKey = process.env.GEMINI_API_KEY;
     const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -65,13 +61,10 @@ const checkInvestment = (stock) => {
             history: [
             ],
         });
-        console.log(prompts.user + stock)
         const result = await chatSession.sendMessage(prompts.user + stock);
         console.log("finished call");
         return JSON.parse(result.response.text());
     }
 
-    return run();
+    return await run();
 }
-
-// checkInvestment("NVDA");
