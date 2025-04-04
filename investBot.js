@@ -19,7 +19,11 @@ const prompts = JSON.parse(fs.readFileSync("gptPrompts.json"));
 const gptSettings = JSON.parse(fs.readFileSync("gptTweak.json"));
 
 const client = new Client({
-    authStrategy: new LocalAuth()
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }
 });
 
 client.on('ready', () => {
