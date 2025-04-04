@@ -33,6 +33,10 @@ const client = new Client({
     }
 });
 
+client.on('framenavigated', () => {
+    console.log('navigated away');
+});
+
 client.on('ready', () => {
     console.log('Client is ready!');
 });
