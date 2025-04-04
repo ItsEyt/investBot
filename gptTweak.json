@@ -1,0 +1,69 @@
+{
+    "model": "gpt-4o-mini",
+    "temperature": 1,
+    "top_p": 1,
+    "frequency_penalty": 0,
+    "presence_penalty": 0,
+    "max_completion_tokens": 2048,
+    "response_format": {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "stock_analysis",
+            "strict": true,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "stock_name": {
+                        "type": "string",
+                        "description": "The name of the stock being analyzed."
+                    },
+                    "analysis": {
+                        "type": "object",
+                        "description": "Detailed breakdown of the stock analysis.",
+                        "properties": {
+                            "summary": {
+                                "type": "string",
+                                "description": "A summary about the stock movement and events that affected it"
+                            },
+                            "pros": {
+                                "type": "array",
+                                "description": "A list of positive aspects of the stock.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "cons": {
+                                "type": "array",
+                                "description": "A list of negative aspects of the stock.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "recommendation": {
+                                "type": "string",
+                                "description": "The advised action regarding the stock (buy/sell/short).",
+                                "enum": [
+                                    "buy",
+                                    "sell",
+                                    "short"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "summary",
+                            "pros",
+                            "cons",
+                            "recommendation"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "stock_name",
+                    "analysis"
+                ],
+                "additionalProperties": false
+            }
+        }
+    }
+}
