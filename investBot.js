@@ -22,14 +22,7 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--disable-features=site-per-process',
-            '--window-size=1920,1080'
-        ]
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
     }
 });
 
