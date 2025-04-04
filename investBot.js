@@ -57,7 +57,7 @@ client.initialize();
 
 
 const checkInvestmentGPT = async (stock) => {
-
+    console.log("request analysis");
     const response = await openai.chat.completions.create({
         model: gptSettings.model,
         messages: [
@@ -88,8 +88,7 @@ const checkInvestmentGPT = async (stock) => {
         presence_penalty: gptSettings.presence_penalty,
         store: true
     });
-
-    // console.log(response.choices[0]);
+    console.log("analysis received");
     const content = JSON.parse(response.choices[0].message.content);
 
     return buildMessage(content);
