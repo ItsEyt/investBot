@@ -1,14 +1,9 @@
-const qrcode = require("qrcode-terminal");
-const { Client, LocalAuth } = require("whatsapp-web.js");
-const {
-	GoogleGenerativeAI,
-	HarmCategory,
-	HarmBlockThreshold,
-} = require("@google/generative-ai");
-const fs = require("node:fs");
 require("dotenv").config();
-
+const fs = require("node:fs");
 const { OpenAI } = require("openai");
+const qrcode = require("qrcode-terminal");
+const { Client, LocalAuth, MessageMedia } = require("whatsapp-web.js");
+// const { GoogleGenerativeAI,HarmCategory, HarmBlockThreshold,} = require("@google/generative-ai");
 
 const openai = new OpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
@@ -36,10 +31,6 @@ const client = new Client({
 	},
 });
 
-client.on("framenavigated", () => {
-	console.log("navigated away");
-});
-
 client.on("ready", () => {
 	console.log("Client is ready!");
 });
@@ -50,26 +41,26 @@ client.on("qr", (qr) => {
 });
 
 client.on("message_create", async (message) => {
-	// console.log(message.id.remote);
 	if (message.id.remote === ids.investingGroup || message.fromMe) {
 		if (message.body.startsWith("!חיפוש")) {
 			let msgParts = message.body.split(" ", 2);
-			console.log(msgParts[1]);
 			let analysis = await checkInvestmentGPT(msgParts[1]);
 			message.reply(analysis);
 		}
 		if (message.body.startsWith("!דיל")) {
 			let msgParts = message.body.split(" ", 2);
-			console.log(msgParts[1]);
 			let deal = await getDealFromAliexpress(msgParts[1]);
-			message.reply(deal);
+            console.log(deal);
+			message.reply(deal.media, null, { caption: deal.message });
+			// client.sendMessage(message.from, deal.media, {
+			// caption: deal.message,
+			// });
 		}
 	}
 });
 client.initialize();
 
 const checkInvestmentGPT = async (stock) => {
-	console.log("request analysis");
 	const response = await openai.chat.completions.create({
 		model: gptSettings.model,
 		messages: [
@@ -100,9 +91,7 @@ const checkInvestmentGPT = async (stock) => {
 		presence_penalty: gptSettings.presence_penalty,
 		store: true,
 	});
-	console.log("analysis received");
 	const content = JSON.parse(response.choices[0].message.content);
-	console.log(content);
 	return buildMessage(content);
 };
 
@@ -151,8 +140,6 @@ const getDealFromAliexpress = async (search) => {
 	//      searchParams.append("keywords", search);
 	// }
 
-	console.log(url + searchParams);
-
 	try {
 		const response = await fetch(url + searchParams, {
 			method: "GET",
@@ -162,59 +149,60 @@ const getDealFromAliexpress = async (search) => {
 			},
 		});
 		let result = await response.json();
-        console.log(result);
 		result = result.filter((deal) => {
-			return Number(deal.discount.slice(0,-1)) > 0;
+			return Number(deal.discount.slice(0, -1)) > 0;
 		}); // filter out deals with no discount
 		const deal = result[Math.floor(Math.random() * result.length)];
 		return dealMessage(deal);
-		// console.log(result);
 	} catch (error) {
 		console.error(error);
 	}
 };
 
-const dealMessage = (deal) => {
-	let message = `*מוצר:* ${deal.product_title}\n
+const dealMessage = async (deal) => {
+	let shortlink = await shortLink(deal.product_detail_url);
+	// const { mimeType, base64String } = await getProductImage(
+	// 	deal.product_main_image_url
+	// );
+	console.log(deal.product_main_image_url);
+	const media = await MessageMedia.fromUrl(deal.product_main_image_url);
+	let message = `${deal.product_title}\n
                     *מחיר מקורי:* ${deal.target_original_price} ש"ח\n
                     *מחיר הנחה:* ${deal.target_sale_price} ש"ח\n
-                    *הנחה:* ${deal.discount} %\n
-                    *קישור:* ${deal.product_detail_url}\n
-                    *תמונה:* ${deal.product_image}`;
-	return message;
+                    *הנחה:* ${deal.discount}\n
+                    *קישור:* ${shortlink}\n`;
+	return { media, message };
 };
 
-/!* old gemini call - deprecated - moved to GPT */;
-// const checkInvestment = async (stock) => {
-//     const apiKey = process.env.GEMINI_API_KEY;
-//     const genAI = new GoogleGenerativeAI(apiKey);
-
-//     const model = genAI.getGenerativeModel({
-//         model: geminiSettings.model,
-//         systemInstruction: prompts.system,
-//     });
-
-//     const generationConfig = {
-//         temperature: geminiSettings.temperature,
-//         topP: geminiSettings.topP,
-//         topK: geminiSettings.topK,
-//         maxOutputTokens: geminiSettings.maxOutputTokens,
-//         responseModalities: [
-//         ],
-//         responseMimeType: "application/json",
-//         responseSchema: geminiSettings.responseSchema,
-//     };
-
-//     async function run() {
-//         const chatSession = model.startChat({
-//             generationConfig,
-//             history: [
-//             ],
-//         });
-//         const result = await chatSession.sendMessage(prompts.user + stock);
-//         console.log("finished call");
-//         return JSON.parse(result.response.text());
-//     }
-
-//     return await run();
-// }
+const shortLink = async (url) => {
+	var data = {
+		domain: process.env.SHORTIO_DOMAIN,
+		originalURL: url,
+	};
+	if (process.env.folderId) {
+		data.folder = process.env.FOLDER_ID; // add folder if exists
+	}
+	try {
+		return fetch("https://api.short.io/links", {
+			method: "POST",
+			headers: {
+				accept: "application/json",
+				"Content-Type": "application/json",
+				authorization: process.env.SHORTIO_API_KEY,
+			},
+			body: JSON.stringify(data),
+		})
+			.then(function (response) {
+				if (!response.ok) {
+					return null; // return null to indicate no short link was created
+				}
+				return response.json();
+			})
+			.then(function (data) {
+				return data.shortURL ? data.shortURL : url; // return short url or original url if error
+			});
+	} catch (error) {
+		console.error("Error:", error);
+		return null;
+	}
+};
