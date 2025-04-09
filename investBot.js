@@ -50,7 +50,7 @@ client.on("message_create", async (message) => {
 		if (message.body.startsWith("!דיל")) {
 			let msgParts = message.body.split(" ", 2);
 			let deal = await getDealFromAliexpress(msgParts[1]);
-            console.log(deal);
+			console.log(deal);
 			message.reply(deal.media, null, { caption: deal.message });
 			// client.sendMessage(message.from, deal.media, {
 			// caption: deal.message,
@@ -199,7 +199,7 @@ const shortLink = async (url) => {
 				return response.json();
 			})
 			.then(function (data) {
-				return data.shortURL ? data.shortURL : url; // return short url or original url if error
+				return data ? data.shortURL : url; // return short url or original url if error
 			});
 	} catch (error) {
 		console.error("Error:", error);
