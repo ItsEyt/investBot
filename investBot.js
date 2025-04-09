@@ -179,7 +179,7 @@ const shortLink = async (url) => {
 		domain: process.env.SHORTIO_DOMAIN,
 		originalURL: url,
 	};
-	if (process.env.folderId) {
+	if (process.env.FOLDER_ID) {
 		data.folder = process.env.FOLDER_ID; // add folder if exists
 	}
 	try {
